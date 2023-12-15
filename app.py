@@ -45,7 +45,6 @@ app = Flask(__name__)
 
 ###### APP ROUTES ######
 @app.route('/')
-
 ## Index page will display total expenditure and expense by category ##
 def index():
     ## Check if DB exist (LATER) ##
@@ -73,6 +72,10 @@ def index():
     print(expensesByCategory)
     print("Showing total expensditure")
     print(total_cost)
-    return render_template("G:\Projects\ExpenseTracker\template\index.html", expenses = total_cost, expCat = expensesByCategory)
+    return render_template("index.html", expenses=total_cost, expCat=expensesByCategory)
+
+@app.route('/addExpenses', methods=["GET", "POST"])
+def addExpenses():
+    return render_template("addExpenses.html")
 
 app.run()

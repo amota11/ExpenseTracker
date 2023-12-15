@@ -1,12 +1,12 @@
-{% extends "G:\Projects\ExpenseTracker\template\template.html" %}
-{% block content %}
+<!--{% extends "template.html" %}
+{% block content %} -->
 
 <header> <!-- Remember to IDs and Classes to tags. More research on that later -->
    <div>
         <div>
             <h1>Add an expense</h1>
-            <!-- href for expense adding later
-            <a href="{{ url_for('addExpenses') }}"> Add an Expense </a> -->
+            <!-- href for expense adding later  -->
+            <a href="{{ url_for('addExpenses') }}">Add Expenses</a>
         </div>
     </div>
 </header>
@@ -17,11 +17,11 @@
             <p> In total, you have spent $<b>{{ expenses }}</b> so far.</p>
 
             <h2> By Category </h2>
-            {% for items in expensesByCat %}
-            <li> US$ {{ items[i] }} in <b> {{ items[0] }}</b></li>
+            {% for items in expCat %}
+            <li> US$ {{ items[1] }} in <b> {{ items[0] }}</b></li>
             {% endfor %}
         </div>
     </div>
 </section>
 
-{% endblock %}
+<!--{% endblock %}-->
