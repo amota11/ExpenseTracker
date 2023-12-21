@@ -1,12 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Expenses</title>
-</head>
-<body>
-    <1>Add new expenses here!</1>
-    <p>hello world!</p>
-</body>
-</html>
+{% extends "template.html" %}
+<!-- Research block content purpose later -->
+{% block content %}
+
+<a href="{{ url_for('index') }}">Home</a>
+
+<form method="post" name="expRecord">
+    {{ form.csrf_token() }}
+        <p>Description:
+            {{ form.description() }}</p>
+        <p>Location:
+            {{ form.location() }}</p>
+        <p>Category:
+            {{ form.category() }} </p>
+        <p>Cost:
+            {{ form.cost() }} </p>
+        <p>Currency:
+            {{ form.currency() }} </p>
+        <p>Date:
+            {{ form.date() }} </p>
+    <input value="Submit" type="submit">
+</form>
+
+{% endblock %}

@@ -1,3 +1,8 @@
+### TO FIX ###
+# 1. TypeError: 'ImmutableMultiDict' object is not callable -> on expense_record dict
+# --> Might be better just to wait for an available network and setup DB in Azure or Mongo Atlas
+
+
 from flask import Flask, render_template, request
 # from flask_pymongo import PyMongo
 from flask_wtf import FlaskForm
@@ -6,6 +11,8 @@ from wtforms import StringField, DecimalField, SelectField, DateField
 
 app = Flask(__name__)
 
+app.config["SECRET_KEY"]="include_a_strong_secret_key"
+
 ## DB CONN FOR LATER - NoSQL(Mongo) or SQL (Azure based)??? ##
 # app.config["SECRET_KEY"] = "Include_a_strong_secret_key"
 # app.config["MONGO_URI"] = "..."
@@ -13,23 +20,23 @@ app = Flask(__name__)
 # myDB - mongo.db
 
 ### Expense Class ###
-# class Expense(FlaskForm):
-#     description = StringField('Description')
-#     location = StringField('Location')
-#     category = SelectField('Category', choices = [("snacks", "Snacks"),
-#                                                   ("restaurant","Restaurant"),
-#                                                   ("services","Services"),
-#                                                   ("clothes","Clothes"),
-#                                                   ("souvenirs","Souvenirs"),
-#                                                   ("hobbies","Hobbies"),
-#                                                   ("transportation","Transportation"),
-#                                                   ("entertainment","Entertaimnet"),
-#                                                   ("ATM", "ATM"),
-#                                                   ("miscellaneous","Miscellaneous"),])
-#     cost = DecimalField("Cost")
-#     currency = SelectField('Currency', choices=[("JPN","Japanese Yen"),
-#                                                 ("USD", "US Dollar")])
-#     date = DateField(label="Date", format = '%m/%d/%Y')
+class Expense(FlaskForm):
+    description = StringField('Description')
+    location = StringField('Location')
+    category = SelectField('Category', choices = [("snacks", "Snacks"),
+                                                  ("restaurant","Restaurant"),
+                                                  ("services","Services"),
+                                                  ("clothes","Clothes"),
+                                                  ("souvenirs","Souvenirs"),
+                                                  ("hobbies","Hobbies"),
+                                                  ("transportation","Transportation"),
+                                                  ("entertainment","Entertaimnet"),
+                                                  ("ATM", "ATM"),
+                                                  ("miscellaneous","Miscellaneous"),])
+    cost = DecimalField("Cost")
+    currency = SelectField('Currency', choices=[("JPN","Japanese Yen"),
+                                                ("USD", "US Dollar")])
+    date = DateField(label="Date", format = '%m/%d/%Y')
 
 #### Currency Conversion Function ####
 #
@@ -76,6 +83,26 @@ def index():
 
 @app.route('/addExpenses', methods=["GET", "POST"])
 def addExpenses():
-    return render_template("addExpenses.html")
+    print("Opening Add Expense page")
+    # Create a new Expense instant from defined class. Instant will be passed to addExpense.html
+    expenseForm = Expense(request.form)
+    print("Creating new expense record. Please wait...")
+    print("...")
+    # Capture input from addExpense into the expense_record list (OR vars below is dict doesn't work ;~; )
+    if request.method == "POST":
+        print("New expense request created")
+        expDesc = request.form.get("Description")
+        print("Displaying expense description: ")
+        print(expDesc)
+        # print(request.form('Location'))
+        # print(request.form('Category'))
+        # print(request.form('Cost'))
+        # print(request.form('Currency'))
+        # print(request.form('Date'))
+
+        # Once input are captured, pass them to expensesAdded.html to display new record
+        ## Optional: Save record in .txt file or in a .CSV (.CSV manip might be handy later)
+        return render_template("expensesAdded.html")
+    return render_template("addExpenses.html", form=expenseForm)
 
 app.run()
