@@ -8,9 +8,11 @@ from flask import Flask, render_template, request
 from flask_wtf import FlaskForm
 from pip._vendor import requests
 from wtforms import StringField, DecimalField, SelectField, DateField
+import csv
 
 app = Flask(__name__)
-
+# app.config.from_object('config')
+# app.config.from_pyfile('config.py')
 app.config["SECRET_KEY"]="include_a_strong_secret_key"
 
 ## DB CONN FOR LATER - NoSQL(Mongo) or SQL (Azure based)??? ##
@@ -38,6 +40,24 @@ class Expense(FlaskForm):
                                                 ("USD", "US Dollar")])
     date = DateField(label="Date", format = '%m/%d/%Y')
 
+def saveRecord(expRecord):
+    with open('storage/expDB.csv', 'a', newline='') as csv_file:
+        record_struct = [
+            'Description', 'Location', 'Category', 'Cost', 'Currency', 'Date'
+        ]
+        new_row = expRecord
+        #print("1. Creating new record dictionary")
+        print("...")
+        print("...")
+        # new_record = dict(zip(record_struct, expRecord))
+        #print("Done! Dictionary record created!!")
+        #print("2. Saving dictionary record to expDB.csv")
+        print("...")
+        print("...")
+        dbWriter = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
+        dbWriter.writerow(new_row)
+    return ("Done! new record saved in expDB.csv!")
+
 #### Currency Conversion Function ####
 #
 #
@@ -59,9 +79,18 @@ def index():
     total_cost = 0
     # for i in my_expenses:
     #     total_cost += float(i["cost"])
-    expensesByCategory = [        ("snacks", 1500.0),        ("restaurant", 25000.0),        ("services", 950.0),        
-                          ("clothes", 8000.0),        ("souvenirs", 3000.0),        ("hobbies", 8850.68),
-                          ("transportation", 3251.37),        ("entertainment", 2750.0),        ("ATM", 30000.0),        ("miscellaneous", 5427.45)  ]
+    expensesByCategory = [        
+                            ("snacks", 1500.0),
+                            ("restaurant", 25000.0),
+                            ("services", 950.0),
+                            ("clothes", 8000.0),
+                            ("souvenirs", 3000.0),
+                            ("hobbies", 8850.68),
+                            ("transportation", 3251.37),
+                            ("entertainment", 2750.0),
+                            ("ATM", 30000.0),
+                            ("miscellaneous", 5427.45)
+                        ]
     for i in expensesByCategory:
         total_cost += i[1]
 
@@ -82,15 +111,15 @@ def addExpenses():
     # Capture input from addExpense into the expense_record list (OR vars below is dict doesn't work ;~; )
     if request.method == "POST":
         print("New expense request created")
-        expDesc = request.form.get("Description")
-        print("Displaying expense description: ")
-        print(expDesc)
-        # print(request.form('Location'))
-        # print(request.form('Category'))
-        # print(request.form('Cost'))
-        # print(request.form('Currency'))
-        # print(request.form('Date'))
-
+        expRecord = [
+            request.form.get('description'),
+            request.form.get('location'),
+            request.form.get('category'),
+            request.form.get('cost'),
+            request.form.get('currency'),
+            request.form.get('date')
+        ]
+        saveRecord(expRecord)
         # Once input are captured, pass them to expensesAdded.html to display new record
         ## Optional: Save record in .txt file or in a .CSV (.CSV manip might be handy later)
         return render_template("expensesAdded.html")

@@ -4,7 +4,7 @@
 
 <a href="{{ url_for('index') }}">Home</a>
 
-<form method="post" name="expRecord">
+<form method="post">
     {{ form.csrf_token() }}
         <p>Description:
             {{ form.description() }}</p>
