@@ -14,10 +14,10 @@
     <div>
         <div>
             <h2> Track your expenses </h2>
-            <p> In total, you have spent $<b>{{ expenses }}</b> so far.</p>
+            <p> In total, you have spent $<b>{{ allExpenses }}</b> so far.</p>
 
             <h2> By Category </h2>
-            {% for items in expCat %}
+            {% for items in expByCat %}
             <li> US$ {{ items[1] }} in <b> {{ items[0] }}</b></li>
             {% endfor %}
         </div>

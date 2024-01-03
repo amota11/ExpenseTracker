@@ -1,25 +1,38 @@
-### TO FIX ###
-# 1. TypeError: 'ImmutableMultiDict' object is not callable -> on expense_record dict
-# --> Might be better just to wait for an available network and setup DB in Azure or Mongo Atlas
+### TO DO -OR- FIX ###
+# 1. Review and add more comments
+# 2. Azure connection and deployment
 
-
+import bson
+import os
+from dotenv import load_dotenv
 from flask import Flask, render_template, request
-# from flask_pymongo import PyMongo
 from flask_wtf import FlaskForm
-from pip._vendor import requests
 from wtforms import StringField, DecimalField, SelectField, DateField
+from pymongo import MongoClient
+from pymongo.collection import Collection
+from pymongo.database import Database
 import csv
+#from pip._vendor import requests
+
+## Access for MongoDB Atlas cluster ##
+load_dotenv()
+connection_string: str = os.environ.get("CONNECTION_STRING")
+mongo_client: MongoClient = MongoClient(connection_string)
+
+## Adding Atlas DB and collection  ##
+database: Database = mongo_client.get_database("expenses")
+collection: Collection = database.get_collection("records")
+# Create a new client and connect to the server
+
+
+## Test for DB connection - SUCCESS 01/03/2023 ##
+# record = { "description" : "Ninja Pocket WiFi", "location" : "Terminal 1, Narita Intl. Airport, Narita",
+#           "category" : "services", "cost" : "5000", "currency" : "JPN", "date" : "2023-11-20"}
+# collection.insert_one(record) 
 
 app = Flask(__name__)
-# app.config.from_object('config')
-# app.config.from_pyfile('config.py')
 app.config["SECRET_KEY"]="include_a_strong_secret_key"
 
-## DB CONN FOR LATER - NoSQL(Mongo) or SQL (Azure based)??? ##
-# app.config["SECRET_KEY"] = "Include_a_strong_secret_key"
-# app.config["MONGO_URI"] = "..."
-# mongo = PyMongo(app)
-# myDB - mongo.db
 
 ### Expense Class ###
 class Expense(FlaskForm):
@@ -35,91 +48,87 @@ class Expense(FlaskForm):
                                                   ("entertainment","Entertaimnet"),
                                                   ("ATM", "ATM"),
                                                   ("miscellaneous","Miscellaneous"),])
-    cost = DecimalField("Cost")
+    cost = DecimalField('Cost')
     currency = SelectField('Currency', choices=[("JPN","Japanese Yen"),
                                                 ("USD", "US Dollar")])
     date = DateField(label="Date", format = '%m/%d/%Y')
 
-def saveRecord(expRecord):
-    with open('storage/expDB.csv', 'a', newline='') as csv_file:
-        record_struct = [
-            'Description', 'Location', 'Category', 'Cost', 'Currency', 'Date'
-        ]
-        new_row = expRecord
-        #print("1. Creating new record dictionary")
-        print("...")
-        print("...")
-        # new_record = dict(zip(record_struct, expRecord))
-        #print("Done! Dictionary record created!!")
-        #print("2. Saving dictionary record to expDB.csv")
-        print("...")
-        print("...")
-        dbWriter = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
-        dbWriter.writerow(new_row)
-    return ("Done! new record saved in expDB.csv!")
+#### Currency Conversion Function (?) ####
 
-#### Currency Conversion Function ####
-#
-#
-#
-#
-
-##### Total Expenses Function #####
-#
-#
-#
-#
+##### Expenses Total By Category #####
+def get_total_expenses(cat):
+    query = {"category" : cat}
+    expense_category = collection.find(query)
+    total_by_category = 0
+    for i in expense_category:
+        total_by_category += float(i["cost"])
+    return total_by_category
 
 ###### APP ROUTES ######
 @app.route('/')
 ## Index page will display total expenditure and expense by category ##
 def index():
-    ## Check if DB exist (LATER) ##
-    # my_expenses = ...
+    # Got overall total from all records
+    all_expenses = collection.find()
+    print(all_expenses)
     total_cost = 0
-    # for i in my_expenses:
-    #     total_cost += float(i["cost"])
+    for i in all_expenses:
+        print(i)
+        total_cost += float(i["cost"])
+    # Expense by category structure
+    print("Querying DB to create Expense by category structure before routing")
     expensesByCategory = [        
-                            ("snacks", 1500.0),
-                            ("restaurant", 25000.0),
-                            ("services", 950.0),
-                            ("clothes", 8000.0),
-                            ("souvenirs", 3000.0),
-                            ("hobbies", 8850.68),
-                            ("transportation", 3251.37),
-                            ("entertainment", 2750.0),
-                            ("ATM", 30000.0),
-                            ("miscellaneous", 5427.45)
+                            ("snacks", get_total_expenses("snacks")),
+                            ("restaurant", get_total_expenses("restaurant")),
+                            ("services", get_total_expenses("services")),
+                            ("clothes", get_total_expenses("clothes")),
+                            ("souvenirs", get_total_expenses("souvenirs")),
+                            ("hobbies", get_total_expenses("hobbies")),
+                            ("transportation", get_total_expenses("transportation")),
+                            ("entertainment", get_total_expenses("entertainment")),
+                            ("ATM", get_total_expenses("ATM")),
+                            ("miscellaneous", get_total_expenses("miscellaneous"))
                         ]
-    for i in expensesByCategory:
-        total_cost += i[1]
-
-    ## Validate expense category structure ##
+    # Validate expense category structure and total cost
+    print(" ... ")
     print("Showing expense category structure")
     print(expensesByCategory)
+    print(" ... ")
     print("Showing total expensditure")
     print(total_cost)
-    return render_template("index.html", expenses=total_cost, expCat=expensesByCategory)
+    print(" ... ")
+    return render_template("index.html", allExpenses=total_cost, expByCat=expensesByCategory)
 
 @app.route('/addExpenses', methods=["GET", "POST"])
 def addExpenses():
     print("Opening Add Expense page")
     # Create a new Expense instant from defined class. Instant will be passed to addExpense.html
-    expenseForm = Expense(request.form)
     print("Creating new expense record. Please wait...")
     print("...")
+    expenseForm = Expense(request.form)
     # Capture input from addExpense into the expense_record list (OR vars below is dict doesn't work ;~; )
     if request.method == "POST":
-        print("New expense request created")
-        expRecord = [
-            request.form.get('description'),
-            request.form.get('location'),
-            request.form.get('category'),
-            request.form.get('cost'),
-            request.form.get('currency'),
-            request.form.get('date')
-        ]
-        saveRecord(expRecord)
+        print("Creating expense record dictionary")
+        print(" ... ")
+        expDesc = request.form.get('description')
+        expLoc = request.form.get('location')
+        expCat = request.form.get('category')
+        expCost = request.form.get('cost')
+        expCurr = request.form.get('currency')
+        expDate = request.form.get('date')
+        newExp = {
+            'description' : expDesc,
+            'location' : expLoc,
+            'category' : expCat,
+            'cost' : expCost,
+            'expCurr' : expCurr,
+            'date' : expDate 
+        }
+        print("Adding expense to database")
+        print(" ... ")
+        collection.insert_one(newExp)
+        print(" ... ")
+        print("New record successfully added to database!!!")
         # Once input are captured, pass them to expensesAdded.html to display new record
         ## Optional: Save record in .txt file or in a .CSV (.CSV manip might be handy later)
         return render_template("expensesAdded.html")
