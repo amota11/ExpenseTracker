@@ -1,1 +1,0 @@
-SECRET_KEY = 'Firulais%0611'
