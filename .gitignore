@@ -3,4 +3,4 @@
 /storage
 /storage/expDB.csv
 /requirements.txt
-/.env
+.env
