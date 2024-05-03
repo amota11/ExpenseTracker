@@ -17,11 +17,14 @@ import csv
 ## Access for MongoDB Atlas cluster ##
 load_dotenv()
 connection_string: str = os.environ.get("CONNECTION_STRING")
+print(connection_string)
 mongo_client: MongoClient = MongoClient(connection_string)
 
 ## Adding Atlas DB and collection  ##
 database: Database = mongo_client.get_database("expenses")
+print(database)
 collection: Collection = database.get_collection("records")
+print(collection)
 # Create a new client and connect to the server
 
 

@@ -3,3 +3,5 @@
 /storage
 requirements.txt
 .env
+test.py
+**/__pycache__
